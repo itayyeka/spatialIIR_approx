@@ -1,13 +1,20 @@
 function [] = IIR_approx_proof_of_concept()
 close all;
 clc;
+[funcPath,~,~] = fileparts(mfilename('fullpath'));
+try
+    spatialIIR_approx_subFunctions_Indicator;
+catch
+    addpath(genpath(fullfile(funcPath,'subFunctions')));
+    spatialIIR_approx_subFunctions_Indicator;
+end
 
 poles_rVec       = [0.9   0.9  ];
-poles_phVec      = [pi/4  -pi/4];
-poles_mult_fctor = 2;
+poles_phVec      = [pi/4  pi/4];
+poles_mult_fctor = 1;
 nFreqs           = 1000;
 symbolicCalc     = 0;
-maxN_Factor      = 1.5;
+maxN_Factor      = 2;
 
 poles_mult_fctor = ceil(poles_mult_fctor);
 poles_rVec       = repmat(poles_rVec,1,poles_mult_fctor);
@@ -52,7 +59,7 @@ for n=2:maxN
     [IIR_approx_response{1,n},~]  = freqz(newCoeffsValues,1,nFreqs);
     IIR_approx_response{1,n}      = reshape(IIR_approx_response{1,n},[],1)/max(abs(IIR_approx_response{1,n}));
 end
-figure; 
+figure;
 plot(fVec,db(abs(IIR_ideal)),fVec,db(abs(IIR_approx_response{maxGroupDelay})),'.-',fVec,db(abs(IIR_approx_response{maxN})),'--');
 legend(...
     { ...
