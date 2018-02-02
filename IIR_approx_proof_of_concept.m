@@ -9,8 +9,8 @@ catch
     spatialIIR_approx_subFunctions_Indicator;
 end
 
-poles_rVec       = [0.9   0.9  ];
-poles_phVec      = [pi/4  pi/4];
+poles_rVec       = [0.9   0.9 ];
+poles_phVec      = [pi/3  pi/3];
 poles_mult_fctor = 1;
 nFreqs           = 1000;
 symbolicCalc     = 0;
@@ -56,11 +56,15 @@ for n=2:maxN
     else
         newCoeffsValues           = eval(newCoeffs);
     end
-    [IIR_approx_response{1,n},~]  = freqz(newCoeffsValues,1,nFreqs);
-    IIR_approx_response{1,n}      = reshape(IIR_approx_response{1,n},[],1)/max(abs(IIR_approx_response{1,n}));
+    
+    newCoeffsValues(isnan(newCoeffsValues)) = 0;
+    
+    curResponse                   = freqz(newCoeffsValues,1,nFreqs);
+    IIR_approx_response{1,n}      = curResponse;
+    IIR_approx_response{1,n}      = reshape(curResponse/max(abs(curResponse)),[],1);
 end
 figure;
-plot(fVec,db(abs(IIR_ideal)),fVec,db(abs(IIR_approx_response{maxGroupDelay})),'.-',fVec,db(abs(IIR_approx_response{maxN})),'--');
+plot(fVec,db(abs(IIR_ideal)),fVec,db(abs(IIR_approx_response{maxGroupDelay})),'.-',fVec,db(abs(IIR_approx_response{maxN})),'-*');
 legend(...
     { ...
     'Ideal IIR response'...
