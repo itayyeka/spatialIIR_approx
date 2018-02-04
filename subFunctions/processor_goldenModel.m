@@ -30,4 +30,5 @@ if cfgStruct.physical.singleTransmitterFlag
         ;
 end
 
+yOut = yOut*stopFeedback;
 end

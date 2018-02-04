@@ -9,7 +9,7 @@ catch
     %% standalone
     if true
         %% sim
-        simDuration = 10;%sec
+        simDuration = 20;%sec
         
         cfgStruct.sim.simDuration = simDuration;
         %% scenario
@@ -60,6 +60,7 @@ catch
         systemLatency          = 0;  %sec
         nSensors               = 5;  %must be 2^integer + 1 (without loss of generality)
         singleTransmitterFlag  = 1;
+        enableFeedback         = 1;
         enableAttenuation      = 0;
         minLambda              = min(cellfun(@(objCfg) propagationVelocity/objCfg.sourceMaxFreq,objCfgVec));
         maxInputFreq           = propagationVelocity/minLambda;
@@ -73,6 +74,7 @@ catch
         cfgStruct.physical.systemLatency          = systemLatency;
         cfgStruct.physical.nSensors               = nSensors;
         cfgStruct.physical.singleTransmitterFlag  = singleTransmitterFlag;
+        cfgStruct.physical.enableFeedback         = enableFeedback;
         cfgStruct.physical.enableAttenuation      = enableAttenuation;
         cfgStruct.physical.minLambda              = minLambda;
         cfgStruct.physical.maxInputFreq           = maxInputFreq;
@@ -90,7 +92,7 @@ catch
         denominatorCoeffs = fliplr(eval(coeffs(prod(z-polePositions),z)));
         sensorWeights     = -denominatorCoeffs(2:end);
         filterGroupDelay  = max(grpdelay(1,denominatorCoeffs));
-        nFilterRounds     = 2*ceil(filterGroupDelay);
+        nFilterRounds     = 3*ceil(filterGroupDelay);
         
         cfgStruct.filter.z                 = z;
         cfgStruct.filter.denominatorOrder  = denominatorOrder;

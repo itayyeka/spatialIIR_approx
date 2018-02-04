@@ -1,3 +1,3 @@
-function [presentationOutput] = presentSimOutput(cfgStruct,simOutpu)
+function [presentationOutput] = presentSimOutput(cfgStruct,simOutput)
 presentationOutput = [];
 end
