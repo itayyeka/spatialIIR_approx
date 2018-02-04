@@ -1,4 +1,15 @@
-function [SphericalPos] = convCartesianToSpherical(cartesianPos)
-rVec = sqrt(sum(cartesianPos.^2,2));
-SphericalPos = [rVec,zeros(size(rVec)),zeros(size(rVec))];
+function [sphericalPos_CELL] = convCartesianToSpherical(cartesianPos_CELL)
+sphericalPos_CELL = ...
+    cellfun( ...
+    @(cartesianPos) ...
+    f_convCartesianToSpherical_singlePos(cartesianPos), ...
+    cartesianPos_CELL, ...
+    'UniformOutput',false);
+end
+
+function [sphericalPos] = f_convCartesianToSpherical_singlePos(cartesianPos)
+rVec            = sqrt(sum(cartesianPos.^2,2));                     %sqrt(x^2+y^2+z^2)
+phiVec          = asin(cartesianPos(:,3)./rVec(:));                 %arcsin(z/r)
+thetaVec        = acos(cartesianPos(:,1)./(rVec(:).*cos(phiVec)));  %acos(x/(r*cos(phi)))
+sphericalPos    = [rVec,thetaVec,phiVec];
 end
