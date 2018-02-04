@@ -60,6 +60,7 @@ catch
         systemLatency          = 0;  %sec
         nSensors               = 5;  %must be 2^integer + 1 (without loss of generality)
         singleTransmitterFlag  = 1;
+        enableAttenuation      = 0;
         minLambda              = min(cellfun(@(objCfg) propagationVelocity/objCfg.sourceMaxFreq,objCfgVec));
         maxInputFreq           = propagationVelocity/nSensors;
         fSample                = 2.5*maxInputFreq;
@@ -70,6 +71,7 @@ catch
         cfgStruct.physical.systemLatency          = systemLatency;
         cfgStruct.physical.nSensors               = nSensors;
         cfgStruct.physical.singleTransmitterFlag  = singleTransmitterFlag;
+        cfgStruct.physical.enableAttenuation      = enableAttenuation;
         cfgStruct.physical.minLambda              = minLambda;
         cfgStruct.physical.maxInputFreq           = maxInputFreq;
         cfgStruct.physical.fSample                = fSample;
