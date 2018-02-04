@@ -22,7 +22,7 @@ catch
             cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
             sourceMinFreq            = 2e3;%Hz
             sourceMaxFreq            = 2e3;
-            sourceSignal             = @(t) cos(2*pi*sourceMinFreq);
+            sourceSignal             = @(t) cos(2*pi*sourceMinFreq*t);
             
             objCfg.sourceMinFreq     = sourceMinFreq;
             objCfg.sourceMaxFreq     = sourceMaxFreq;
@@ -40,7 +40,7 @@ catch
             cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
             sourceMinFreq            = 2e3;%Hz
             sourceMaxFreq            = 2e3;
-            sourceSignal             = @(t) cos(2*pi*sourceMinFreq);
+            sourceSignal             = @(t) cos(2*pi*sourceMinFreq*t);
             
             objCfg.sourceMinFreq     = sourceMinFreq;
             objCfg.sourceMaxFreq     = sourceMaxFreq;
