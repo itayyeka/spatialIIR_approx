@@ -14,10 +14,12 @@ f_objSphericalRadious   = @(objSpherical_CELL) ...
     objSpherical_CELL, ...
     'UniformOutput', false);
 
+nSensors = cfgStruct.physical.nSensors;
+
 sensorsPos_xVec = ...
     cfgStruct.physical.distanceBetweenSensors ...
     * ...
-    (0:(cfgStruct.physical.nSensors-1));
+    (0:(nSensors-1));
 
 sensorsPos_xVec = sensorsPos_xVec - mean(sensorsPos_xVec); % all sensors are on the x axis centered around 0
 
@@ -111,23 +113,34 @@ so that each segment can be calculated indepedently due to the fact
 that each sample in the segment depends only on "tau_feedback" delayed
 signals.
 %}
-segmentSampleDuration   = minDelay_samples;
-arrayInput              = zeros(simDuration_Samples,cfgStruct.physical.nSensors);
+segmentSampleDuration = minDelay_samples;
+arrayInput            = zeros(simDuration_Samples,nSensors);
+arrayTx               = zeros(simDuration_Samples,nSensors);
+xModulatorSignal      = sqrt(2)*cos(2*pi*cfgStruct.physical.modulatorFreq*discreteTVec);  
+yModulatorSignal      = -sqrt(2)*sin(2*pi*cfgStruct.physical.modulatorFreq*discreteTVec);
+lpfCoeffs             = genLPF(cfgStruct);
 
-if cfgStruct.physical.singleTransmitterFlag
-    arrayTx = zeros(simDuration_Samples,1);
-else
-    assert(false,'STILL NOT SUPPORTED');
-    arrayTx = zeros(simDuration_Samples,cfgStruct.physical.nSensors);
-end
+cfgStruct.filter.lpfCoeffs = lpfCoeffs;
 
-objectsInput_CELL            = cell(1,cfgStruct.physical.nSensors);
-objectsInput_CELL(:)         = {zeros(simDuration_Samples,1)};
+assert(cfgStruct.physical.singleTransmitterFlag==1,'STILL NOT SUPPORTED');
+
+objectsInput_CELL    = cell(1,nSensors);
+objectsInput_CELL(:) = {zeros(simDuration_Samples,1)};
+
 
 for segmentId=1:simNSegments
     startSampleID           = (segmentId-1)*segmentSampleDuration+1;
     endSampleID             = segmentId*segmentSampleDuration;
     segmentDiscreteTVec     = ((startSampleID:endSampleID)-1)*tSample;
+    segmentModulatorX       = xModulatorSignal(startSampleID:endSampleID);
+    segmentModulatorY       = yModulatorSignal(startSampleID:endSampleID);
+    
+    cfgStruct.dynamics.segmentId           = segmentId;
+    cfgStruct.dynamics.startSampleID       = startSampleID;
+    cfgStruct.dynamics.endSampleID         = endSampleID;
+    cfgStruct.dynamics.segmentDiscreteTVec = segmentDiscreteTVec;
+    cfgStruct.dynamics.segmentModulatorX   = segmentModulatorX;
+    cfgStruct.dynamics.segmentModulatorY   = segmentModulatorY;
     
     segmentDelaysVec_CELL = ...
         cellfun(...
@@ -158,7 +171,7 @@ for segmentId=1:simNSegments
         @(objDelayedTime,sensorId) ... each object contributes differently to each sensor
         getSignleCellValue(f_getObjectDistance_CELL(objCfg,objDelayedTime,cfgStruct),sensorId), ...
         objDelayedTime_CELL,...
-        reshape(num2cell(1:cfgStruct.physical.nSensors),size(objDelayedTime_CELL)), ...
+        reshape(num2cell(1:nSensors),size(objDelayedTime_CELL)), ...
         'UniformOutput', false), ...
         objCfgVec,segmentDelayedTimeVec_CELL, ...
         'UniformOutput',false);
@@ -194,24 +207,21 @@ for segmentId=1:simNSegments
     %{
     In each segment, both the sensor inputs and each object's feedback
     signal will be calculated and summed.
-    %}
-    [segmentYOut] = processor_goldenModel(arrayInput(startSampleID:endSampleID,:),cfgStruct);
+    %}    
+    [segmentYOut,segmentArrayTx] = processor_goldenModel(arrayInput(startSampleID:endSampleID,:),cfgStruct);
     
-    yOut(startSampleID:endSampleID,1) = segmentYOut(:);
-    
-    if cfgStruct.physical.singleTransmitterFlag
-        
-    end
+    arrayTx(startSampleID:endSampleID,:) = segmentArrayTx;
+    yOut(startSampleID:endSampleID,1)    = segmentYOut(:);
     
     segmentObjectsInput_CELL = ...
         cellfun( ...
         @(objCfg,objDelayedTime_CELL,objDelayedDistance_CELL) ... each object contributes
         cellfun( ...
-        @(objDelayedTime,objDelayedDistance) ... each object contributes differently to each sensor
+        @(objDelayedTime,objDelayedDistance,sensorId) ... each object contributes differently to each sensor
         getAttenuation(objDelayedDistance,cfgStruct) ...
         .* ...
-        sampleSignal((0:(endSampleID-1))*tSample,arrayInput(1:endSampleID,:),objDelayedTime), ...
-        objDelayedTime_CELL,objDelayedDistance_CELL, ...
+        sampleSignal((0:(endSampleID-1))*tSample,arrayTx(1:endSampleID,sensorId),objDelayedTime), ...
+        objDelayedTime_CELL,objDelayedDistance_CELL,reshape(num2cell(1:nSensors),size(objDelayedTime_CELL)), ...
         'UniformOutput', false), ...
         objCfgVec,segmentDelayedTimeVec_CELL,segmentDelayedDistance_CELL, ...
         'UniformOutput',false);

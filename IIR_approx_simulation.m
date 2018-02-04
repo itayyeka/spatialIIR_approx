@@ -62,9 +62,11 @@ catch
         singleTransmitterFlag  = 1;
         enableAttenuation      = 0;
         minLambda              = min(cellfun(@(objCfg) propagationVelocity/objCfg.sourceMaxFreq,objCfgVec));
-        maxInputFreq           = propagationVelocity/nSensors;
-        fSample                = 2.5*maxInputFreq;
+        maxInputFreq           = propagationVelocity/minLambda;
+        modulatorFreq          = maxInputFreq*2;
+        fSample                = 2.5*modulatorFreq;
         distanceBetweenSensors = minLambda/2;
+        sourceSignalsBandWidth = 0.5e3;
         
         cfgStruct.physical.propagationVelocity    = propagationVelocity;
         cfgStruct.physical.txPropagationVeclocity = txPropagationVeclocity;
@@ -74,8 +76,11 @@ catch
         cfgStruct.physical.enableAttenuation      = enableAttenuation;
         cfgStruct.physical.minLambda              = minLambda;
         cfgStruct.physical.maxInputFreq           = maxInputFreq;
+        cfgStruct.physical.modulatorFreq          = modulatorFreq;
         cfgStruct.physical.fSample                = fSample;
         cfgStruct.physical.distanceBetweenSensors = distanceBetweenSensors;
+        cfgStruct.physical.sourceSignalsBandWidth = sourceSignalsBandWidth;
+        
         %% filter
         syms z;
         
