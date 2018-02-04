@@ -137,7 +137,7 @@ signals.
 segmentSampleDuration = minDelay_samples;
 arrayInput            = zeros(simDuration_Samples,nSensors);
 arrayTx               = zeros(simDuration_Samples,nSensors);
-xModulatorSignal      = sqrt(2)*cos(2*pi*cfgStruct.physical.modulatorFreq*discreteTVec);  
+xModulatorSignal      = sqrt(2)*cos(2*pi*cfgStruct.physical.modulatorFreq*discreteTVec);
 yModulatorSignal      = -sqrt(2)*sin(2*pi*cfgStruct.physical.modulatorFreq*discreteTVec);
 lpfCoeffs             = genLPF(cfgStruct);
 
@@ -271,12 +271,24 @@ for segmentId=1:simNSegments
         segmentObjectsFeedback_CELL, ...
         'UniformOutput', false);
     
-    arrayNominalInput = plus(arrayNominalInput_stg1{:}); % sum all objects contribution for each sensor seperatly
-    arrayFeedback     = plus(arrayFeedbackInput_stg1{:});
+    try
+        arrayNominalInput = plus(arrayNominalInput_stg1{:}); % sum all objects contribution for each sensor seperatly
+        arrayFeedback     = plus(arrayFeedbackInput_stg1{:});
+    catch
+        arrayNominalInput = arrayNominalInput_stg1{1}; % sum all objects contribution for each sensor seperatly
+        arrayFeedback     = arrayFeedbackInput_stg1{1};
+    end
     
-    arrayInput(startSampleID:endSampleID,:) = ...
-        arrayInput(startSampleID:endSampleID,:) ...
-        + ...
+    if false
+        %% DEBUG
+        figure;plot(arrayNominalInput);
+        title('nominal input');
+        figure;plot(arrayFeedback(:,1));
+        title('feedback');
+        
+    end
+    
+    arrayInput(startSampleID:endSampleID,:) = ...        
         arrayNominalInput ...
         + ...
         cfgStruct.physical.enableFeedback ...
@@ -287,11 +299,11 @@ for segmentId=1:simNSegments
     %{
     In each segment, both the sensor inputs and each object's feedback
     signal will be calculated and summed.
-    %}    
+    %}
     [segmentYOut,segmentArrayTx] = processor_goldenModel(arrayInput(startSampleID:endSampleID,:),cfgStruct);
     
     arrayTx(startSampleID:endSampleID,:) = segmentArrayTx;
-    yOut(startSampleID:endSampleID,1)    = segmentYOut(:);    
+    yOut(startSampleID:endSampleID,1)    = segmentYOut(:);
 end
 
 simOutput.yOut = yOut;

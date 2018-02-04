@@ -9,7 +9,7 @@ catch
     %% standalone
     if true
         %% sim
-        simDuration = 20;%sec
+        simDuration = 10;%sec
         
         cfgStruct.sim.simDuration = simDuration;
         %% scenario
@@ -50,7 +50,7 @@ catch
             objCfg.complexXyPos      = complexXyPos;
             objCfg.cartesianPosition = cartesianPosition;
             
-            objCfgVec{end+1} = objCfg;
+%             objCfgVec{end+1} = objCfg;
         end
         
         cfgStruct.scenario.objCfgVec = objCfgVec;
@@ -65,9 +65,9 @@ catch
         minLambda              = min(cellfun(@(objCfg) propagationVelocity/objCfg.sourceMaxFreq,objCfgVec));
         maxInputFreq           = propagationVelocity/minLambda;
         modulatorFreq          = maxInputFreq*2;
-        fSample                = 2.5*modulatorFreq;
-        distanceBetweenSensors = minLambda/2;
         sourceSignalsBandWidth = 0.5e3;
+        fSample                = 2.5*(modulatorFreq+maxInputFreq+maxInputFreq);
+        distanceBetweenSensors = minLambda/4;
         
         cfgStruct.physical.propagationVelocity    = propagationVelocity;
         cfgStruct.physical.txPropagationVeclocity = txPropagationVeclocity;
@@ -92,7 +92,7 @@ catch
         denominatorCoeffs = fliplr(eval(coeffs(prod(z-polePositions),z)));
         sensorWeights     = -denominatorCoeffs(2:end);
         filterGroupDelay  = max(grpdelay(1,denominatorCoeffs));
-        nFilterRounds     = 3*ceil(filterGroupDelay);
+        nFilterRounds     = 2*ceil(filterGroupDelay);
         
         cfgStruct.filter.z                 = z;
         cfgStruct.filter.denominatorOrder  = denominatorOrder;
