@@ -1,3 +1,4 @@
 function [cylindricalPos] = convCartesianToCylindrical(cartesianPos)
-cylindricalPos = [sqrt(sum(cartesianPos.^2)),0,0];
+rVec = sqrt(sum(cartesianPos.^2,2));
+cylindricalPos = [rVec,zeros(size(rVec)),zeros(size(rVec))];
 end

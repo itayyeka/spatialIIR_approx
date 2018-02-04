@@ -5,45 +5,50 @@ function [simOutput] = simulate_IIR_approx_singleScenario(cfgStruct)
 %{
 First, the temporal positions of each object will be calculated.
 %}
-cfgSimDuration        = cfgStruct.sim.simDuration;
-f_objCartesian        = @(t,f_getCartesian) f_getCartesian(t);
-f_objRadious          = @(objCylindrical) objCylindrical(1);
-fminbnd_fetchMinValue = @(fminbndRes) fminbndRes(2);
+cfgSimDuration          = cfgStruct.sim.simDuration;
+f_objCartesian          = @(t,f_getCartesian) f_getCartesian(t);
+f_objCylindricalRadious = @(objCylindrical) objCylindrical(:,1);
 
-minObjectDistance = ...
-    min(...                             7. fetch the globally minimal object distance.
-    cellfun( ...                        6. collect all minimal distances
-    @(objCfg) ...
-    f_objRadious( ...                   5. fminbnd returns the minimizero fo the function, now we fetch its value
-    convCartesianToCylindrical( ... 
-    f_objCartesian( ...             
-    fminbnd(...                     
-    @(t) ...                            4. combined steps 1-3 to a single function of objectDistance(t,objCfg)
-    f_objRadious( ...                   3. fetch only the radious from the cylindrical
+f_getObjectRadious = ...
+    @(objCfg,t) ...
+    f_objCylindricalRadious( ...        3. fetch only the radious from the cylindrical
     convCartesianToCylindrical( ...     2. convert cartesian to cylindrical
     f_objCartesian( ...                 1. request catersian of an object in t      
     t,objCfg.cartesianPosition ...  
     ) ...
     ) ...
+    );
+
+minObjectDistance = ...
+    min(...                             5. fetch the globally minimal object distance.
+    cellfun( ...                        4. collect all minimal distances
+    @(objCfg) ...
+    f_getObjectRadious( ...             3. fminbnd returns the minimizero fo the function, now we fetch its value
+    objCfg,...
+    fminbnd(...                     
+    @(t) ...                            2. combined steps 1-3 to a single function of objectDistance(t,objCfg)
+    f_getObjectRadious( ...             1. fetch only the radious from the cylindrical
+    objCfg,t ...    
     ), ...
     0,cfgSimDuration ...
-    ) ...                               this concludes the fminbnd which calc the t of the min distance (this is also th t for "f_objCartesian(t,f_getCartesian)"
-    ,objCfg.cartesianPosition ...       this is also th f_getCartesian for "f_objCartesian(t,f_getCartesian)"
-    ) ...                               f_objCartesian
-    ) ...                               convCartesianToCylindrical
-    ),...                               f_objRadious
+    ) ...                               fminbnd                             
+    ),...                               
     cfgStruct.scenario.objCfgVec ...    the cell array of objects
     ) ...
     );
 
-propagationVelocity = cfgStruct.physical.propagationVelocity;
-minDelay            = minObjectDistance/propagationVelocity; % this is the "tau_feedback"
-simNSegments        = ceil(cfgSimDuration/minDelay);
-simDuration         = simNSegments*minDelay;
 %%
 %{
 The minimal distance to the sensors will determine the "tau_feedback".
 %}
+propagationVelocity = cfgStruct.physical.propagationVelocity;
+minDelay_continious = minObjectDistance/propagationVelocity;    % this is the "tau_feedback"
+tSample             = 1/cfgStruct.physical.fSample;
+minDelay_samples    = ceil(minDelay_continious/tSample);
+minDelay            = minDelay_samples*tSample;                 %quantizing the min delay to avoid errors in the samples fetching
+simNSegments        = ceil(cfgSimDuration/minDelay);
+simDuration_Samples = simNSegments*minDelay_samples;
+simDuration         = simDuration_Samples*tSample;
 
 %%
 %{
@@ -52,6 +57,19 @@ converted to delays.
 These delays will serve as an offset from the current time when
 fetching samples from the object's transmitters to the sensors inputs.
 %}
+f_getObjectDelay = @(objCfg,t) f_getObjectRadious(objCfg,t)/propagationVelocity;
+discreteTVec = tSample*(0:(simDuration_Samples-1));
+
+objSeperatedDelays_CELL = ...
+    cellfun(...
+    @(objCfg,t) ...
+    f_getObjectDelay(...
+    objCfg,...
+    discreteTVec ... t
+    ), ...
+    cfgStruct.scenario.objCfgVec,...
+    'UniformOutput',false ...
+    );
 
 %%
 %{

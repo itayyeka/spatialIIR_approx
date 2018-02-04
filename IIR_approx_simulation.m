@@ -9,7 +9,7 @@ catch
     %% standalone
     if true
         %% sim
-        simDuration = 20;%sec
+        simDuration = 10;%sec
         
         cfgStruct.sim.simDuration = simDuration;
         %% scenario
@@ -18,8 +18,8 @@ catch
             %% obj1
             initDistance             = 100;%meter
             initAzimuth              = pi/4;%RAD
-            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth);
-            cartesianPosition        = @(t) [real(complexXyPos(t)), imag(complexXyPos(t)), 0];
+            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
+            cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
             sourceMinFreq            = 2e3;%Hz
             sourceMaxFreq            = 2e3;
             sourceSignal             = @(t) cos(2*pi*sourceMinFreq);
@@ -36,8 +36,8 @@ catch
             %% obj2
             initDistance             = 80;%meter
             initAzimuth              = 3*pi/8;%RAD
-            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth);
-            cartesianPosition        = @(t) [real(complexXyPos(t)), imag(complexXyPos(t)), 0];
+            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
+            cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
             sourceMinFreq            = 2e3;%Hz
             sourceMaxFreq            = 2e3;
             sourceSignal             = @(t) cos(2*pi*sourceMinFreq);
