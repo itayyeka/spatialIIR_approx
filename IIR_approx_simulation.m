@@ -1,6 +1,11 @@
 function [simOutput,presentationOutput] = IIR_approx_simulation(cfgStruct)
 clc;
-
+[funcPath,~,~] = fileparts(mfilename('fullpath'));
+try
+    IIR_approx_subFunctionsIndicator;
+catch
+    addpath(genpath(fullfile(funcPath,'subFunctions')));
+end
 %% configuration
 try
     %% external config
@@ -17,12 +22,12 @@ catch
         if true
             %% obj1
             initDistance             = 100;%meter
-            initAzimuth              = pi/4;%RAD
+            initAzimuth              = 0;%RAD
             complexXyPos             = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
             cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
             sourceMinFreq            = 2e3;%Hz
             sourceMaxFreq            = 2e3;
-            sourceSignal             = @(t) cos(2*pi*sourceMinFreq*t);
+            sourceSignal             = @(t) exp(1i*2*pi*sourceMinFreq*t);
             
             objCfg.sourceMinFreq     = sourceMinFreq;
             objCfg.sourceMaxFreq     = sourceMaxFreq;
@@ -50,7 +55,7 @@ catch
             objCfg.complexXyPos      = complexXyPos;
             objCfg.cartesianPosition = cartesianPosition;
             
-%             objCfgVec{end+1} = objCfg;
+            %             objCfgVec{end+1} = objCfg;
         end
         
         cfgStruct.scenario.objCfgVec = objCfgVec;
@@ -87,7 +92,7 @@ catch
         syms z;
         
         polesRadious      = 0.9;
-        denominatorOrder  = nSensors - 1;        
+        denominatorOrder  = nSensors - 1;
         polePositions     = repmat(polesRadious*[exp(1i*pi/4) exp(-1i*pi/4)], 1, denominatorOrder/2);
         denominatorCoeffs = fliplr(eval(coeffs(prod(z-polePositions),z)));
         sensorWeights     = -denominatorCoeffs(2:end);
@@ -113,31 +118,31 @@ Simulation logic:
 
 *   The minimal distance to the sensors will determine the "tau_feedback".
 
-*   A delayed (by "tau_feedback") version of the objects positions will be 
+*   A delayed (by "tau_feedback") version of the objects positions will be
     converted to delays.
     These delays will serve as an offset from the current time when
     fetching samples from the object's transmitters to the sensors inputs.
 
 *   The simulation will be segmented according to the minimal "tau_feedback"
-    so that each segment can be calculated indepedently due to the fact 
-    that each sample in the segment depends only on "tau_feedback" delayed 
+    so that each segment can be calculated indepedently due to the fact
+    that each sample in the segment depends only on "tau_feedback" delayed
     signals.
 
-*   An initial non-feedback signals will be assigned to the sensors inputs 
-    according to the object positions.  
+*   An initial non-feedback signals will be assigned to the sensors inputs
+    according to the object positions.
 
 *   In each segment, both the sensor inputs and eahc object's feedback
     signal will be calculated and summed.
 
 *   The feeback cancellation will start after nFilterRounds*tau_feedback.
 
-*   The simulation output will contain : 
+*   The simulation output will contain :
     *   sensors temporal position
 
-    *   array output 
+    *   array output
         (starting from t=0)
 
-    *   delayed array output 
+    *   delayed array output
         (starting from the moment of feedback cancellation execution)
         will serve as an "temporal-aligned-to-objects-position" array
         output.

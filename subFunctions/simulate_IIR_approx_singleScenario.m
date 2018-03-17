@@ -300,6 +300,7 @@ for segmentId=1:simNSegments
     In each segment, both the sensor inputs and each object's feedback
     signal will be calculated and summed.
     %}
+    cfgStruct.IdealEstimation.objSeperatedRxDelays_CELL = objSeperatedRxDelays_CELL;
     [segmentYOut,segmentArrayTx] = processor_goldenModel(arrayInput(startSampleID:endSampleID,:),cfgStruct);
     
     arrayTx(startSampleID:endSampleID,:) = segmentArrayTx;

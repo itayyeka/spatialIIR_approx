@@ -1,4 +1,4 @@
 function [presentationOutput] = presentSimOutput(cfgStruct,simOutput)
 presentationOutput = [];
-figure; plot(simOutput.yOut(:));
+figure; plot(abs(simOutput.yOut(:)));
 end
