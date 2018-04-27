@@ -1,6 +1,8 @@
 function [simOutput,presentationOutput] = IIR_approx_simulation(cfgStruct)
 clc;
+close all;
 [funcPath,~,~] = fileparts(mfilename('fullpath'));
+cd(funcPath);
 try
     IIR_approx_subFunctionsIndicator;
 catch
@@ -12,101 +14,11 @@ try
     cfgStruct;
 catch
     %% standalone
-    if true
-        %% sim
-        simDuration = 10;%sec
-        
-        cfgStruct.sim.simDuration = simDuration;
-        %% scenario
-        objCfgVec = cell(0);
-        if true
-            %% obj1
-            initDistance             = 100;%meter
-            initAzimuth              = 0;%RAD
-            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
-            cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
-            sourceMinFreq            = 2e3;%Hz
-            sourceMaxFreq            = 2e3;
-            sourceSignal             = @(t) exp(1i*2*pi*sourceMinFreq*t);
-            
-            objCfg.sourceMinFreq     = sourceMinFreq;
-            objCfg.sourceMaxFreq     = sourceMaxFreq;
-            objCfg.sourceSignal      = sourceSignal;
-            objCfg.initDistance      = initDistance;
-            objCfg.initAzimuth       = initAzimuth;
-            objCfg.complexXyPos      = complexXyPos;
-            objCfg.cartesianPosition = cartesianPosition;
-            
-            objCfgVec{end+1} = objCfg;
-            %% obj2
-            initDistance             = 80;%meter
-            initAzimuth              = 3*pi/8;%RAD
-            complexXyPos             = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
-            cartesianPosition        = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
-            sourceMinFreq            = 2e3;%Hz
-            sourceMaxFreq            = 2e3;
-            sourceSignal             = @(t) cos(2*pi*sourceMinFreq*t);
-            
-            objCfg.sourceMinFreq     = sourceMinFreq;
-            objCfg.sourceMaxFreq     = sourceMaxFreq;
-            objCfg.sourceSignal      = sourceSignal;
-            objCfg.initDistance      = initDistance;
-            objCfg.initAzimuth       = initAzimuth;
-            objCfg.complexXyPos      = complexXyPos;
-            objCfg.cartesianPosition = cartesianPosition;
-            
-            %             objCfgVec{end+1} = objCfg;
-        end
-        
-        cfgStruct.scenario.objCfgVec = objCfgVec;
-        %% physical
-        propagationVelocity    = 343;%m/s
-        txPropagationVeclocity = 3e8;%m/s
-        systemLatency          = 0;  %sec
-        nSensors               = 5;  %must be 2^integer + 1 (without loss of generality)
-        singleTransmitterFlag  = 1;
-        enableFeedback         = 1;
-        enableAttenuation      = 0;
-        minLambda              = min(cellfun(@(objCfg) propagationVelocity/objCfg.sourceMaxFreq,objCfgVec));
-        maxInputFreq           = propagationVelocity/minLambda;
-        modulatorFreq          = maxInputFreq*2;
-        sourceSignalsBandWidth = 0.5e3;
-        fSample                = 2.5*(modulatorFreq+maxInputFreq+maxInputFreq);
-        distanceBetweenSensors = minLambda/4;
-        
-        cfgStruct.physical.propagationVelocity    = propagationVelocity;
-        cfgStruct.physical.txPropagationVeclocity = txPropagationVeclocity;
-        cfgStruct.physical.systemLatency          = systemLatency;
-        cfgStruct.physical.nSensors               = nSensors;
-        cfgStruct.physical.singleTransmitterFlag  = singleTransmitterFlag;
-        cfgStruct.physical.enableFeedback         = enableFeedback;
-        cfgStruct.physical.enableAttenuation      = enableAttenuation;
-        cfgStruct.physical.minLambda              = minLambda;
-        cfgStruct.physical.maxInputFreq           = maxInputFreq;
-        cfgStruct.physical.modulatorFreq          = modulatorFreq;
-        cfgStruct.physical.fSample                = fSample;
-        cfgStruct.physical.distanceBetweenSensors = distanceBetweenSensors;
-        cfgStruct.physical.sourceSignalsBandWidth = sourceSignalsBandWidth;
-        
-        %% filter
-        syms z;
-        
-        polesRadious      = 0.9;
-        denominatorOrder  = nSensors - 1;
-        polePositions     = repmat(polesRadious*[exp(1i*pi/4) exp(-1i*pi/4)], 1, denominatorOrder/2);
-        denominatorCoeffs = fliplr(eval(coeffs(prod(z-polePositions),z)));
-        sensorWeights     = -denominatorCoeffs(2:end);
-        filterGroupDelay  = max(grpdelay(1,denominatorCoeffs));
-        nFilterRounds     = 2*ceil(filterGroupDelay);
-        
-        cfgStruct.filter.z                 = z;
-        cfgStruct.filter.denominatorOrder  = denominatorOrder;
-        cfgStruct.filter.polesRadious      = polesRadious;
-        cfgStruct.filter.polePositions     = polePositions;
-        cfgStruct.filter.denominatorCoeffs = denominatorCoeffs;
-        cfgStruct.filter.sensorWeights     = sensorWeights;
-        cfgStruct.filter.nFilterRounds     = nFilterRounds;
-    end
+    overrideCfg                         = [];
+    overrideCfg.firstObj.initAzimuth    = pi/8;
+    overrideCfg.filter.polesRadious     = 0.7;
+    overrideCfg.filter.polesAzimuth     = pi/4;
+    cfgStruct = spatialIIR_getDefaultSimCfg(overrideCfg);
 end
 
 %% simulation
@@ -151,5 +63,13 @@ Simulation logic:
 
 simOutput          = simulate_IIR_approx_singleScenario(cfgStruct);
 
-presentationOutput = presentSimOutput(cfgStruct,simOutput);
+try
+    cfgStruct.scriptEnables.plotOutput;
+catch
+    cfgStruct.scriptEnables.plotOutput=1;
+end
+
+presentationOutput=[];
+if cfgStruct.scriptEnables.plotOutput
+    presentationOutput = presentSimOutput(cfgStruct,simOutput);
 end
