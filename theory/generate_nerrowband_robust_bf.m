@@ -18,7 +18,7 @@ nNoisePhase             = 12;
 enablePlot              = 1;
 ignoreFirstCoef         = 1;
 
-configParamNames        = {...
+externallyConfigurableParamNames        = {...
     'nThetaValues',...
     'bf_cosPolynomCoefVec',...
     'nSensors',...
@@ -28,11 +28,12 @@ configParamNames        = {...
     'nNoisePhase',...
     'enablePlot',...
     'ignoreFirstCoef',...
-    'distanceBetweenSensors'
+    'distanceBetweenSensors',...
+    'fSignal'...
     };
-for configPrmId=1:numel(configParamNames)
+for configPrmId=1:numel(externallyConfigurableParamNames)
     try
-        eval([configParamNames{configPrmId} ' = externalCfg.' configParamNames{configPrmId} ';']);
+        eval([externallyConfigurableParamNames{configPrmId} ' = externalCfg.' externallyConfigurableParamNames{configPrmId} ';']);
     catch
     end
 end
@@ -49,13 +50,14 @@ end
 enablePlot = enablePlot || internalPlotOvrd;
 %% aux
 lambda                  = propagationSpeed/fSignal;
+
 try
     dSensors            = distanceBetweenSensors;
 catch
     dSensors            = lambda/100;
 end
-omegaVal                = 2*pi*fSignal;
 
+omegaVal                = 2*pi*fSignal;
 %% simulate
 if true
     %% aux

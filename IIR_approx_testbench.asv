@@ -14,15 +14,14 @@ end
 enableParallelCompute               = 1;
 
 %% tbCfg
-tbCfg.nAzimuth                      = 12;
-tbCfg.simDuration                   = 5;
-tbCfg.lambdaToSensorDistanceFactor  = 1/2;
+tbCfg.nAzimuth                      = 8;
+tbCfg.simDuration                   = 10;
+tbCfg.lambdaToSensorDistanceFactor  = 1/10;
 tbCfg.enableFeedback                = 1;
-tbCfg.enablePhaseCorrection         = 0;
+tbCfg.enablePhaseCorrection         = 1;
 tbCfg.enableLimiter                 = 0;
 tbCfg.limiterMaxDb                  = 20;
 tbCfg.simulateSpatialFIR            = 0;
-tbCfg.sensorDistanceModFactor       = 1;
 
 %% generate simCfg
 simCfg.scriptEnables.plotOutput = 0;
@@ -47,7 +46,6 @@ overrideCfg.nAzimuth                        = tbCfg.nAzimuth;
 overrideCfg.azimuthVec                      = azimuthVec;
 overrideCfg.enableFeedback                  = tbCfg.enableFeedback;
 overrideCfg.simulateSpatialFIR              = tbCfg.simulateSpatialFIR;
-overrideCfg.sensorDistanceModFactor         = tbCfg.sensorDistanceModFactor;
 
 if enableParallelCompute
     parfor azimuthId=1:tbCfg.nAzimuth
@@ -93,14 +91,14 @@ figure;plot(timeVec,db(arrayReponse_temporalMat));
 title('Max array gain (sweeped through all azimuths) vs. time - single speaker scenario');
 ylabel('dB');
 xlabel('time[Sec]');
+legendStrCell = cellfun(@(azVal) ['Azimuth = ' num2str(azVal/pi) ' \pi [RAD]'], num2cell(azimuthVec), 'UniformOutput', false);
+legend(legendStrCell(:))
 
 arrayResponseMat = abs(cell2mat(cellfun(@(CELL) CELL.yOut(:), simOutput_CELL, 'UniformOutput', false)))/max(arrayReponse_amp(:));
 figure;plot(timeVec,db(arrayResponseMat));
 title('array gains (azimuth seperated) vs. time - single speaker scenario');
 ylabel('dB');
 xlabel('time[Sec]');
-legendStrCell = cellfun(@(azVal) ['Azimuth = ' num2str(azVal/pi) ' \pi [RAD]'], num2cell(azimuthVec), 'UniformOutput', false);
-legend(legendStrCell(:))
 
 if ~tbCfg.simulateSpatialFIR
     expectedResponse        = 1./simCfg.filter.expectedResponse;

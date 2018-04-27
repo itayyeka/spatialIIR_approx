@@ -75,19 +75,39 @@ catch
     lambdaToSensorDistanceFactor = 1/10;%sec
 end
 
-maxObjectsFreq          = max(cellfun(@(objCfg) objCfg.sourceMaxFreq,objCfgVec));
-maxSimulatedFreq        = max(maxObjectsFreq,syncSigBaseFreq);
-fSample                 = 5*maxSimulatedFreq;
-distanceBetweenSensors  = (propagationVelocity/maxSimulatedFreq)*lambdaToSensorDistanceFactor;
-f_syncSig               = @(tVec) syncSigAmp*(tVec>0).*exp(1i*2*pi*syncSigBaseFreq*tVec);
-ULA_direction           = pi;
+maxObjectsFreq              = max(cellfun(@(objCfg) objCfg.sourceMaxFreq,objCfgVec));
+try
+    if overrideCfg.simulateSpatialFIR
+        maxSimulatedFreq    = maxObjectsFreq;
+    else
+        maxSimulatedFreq    = syncSigBaseFreq;
+    end
+catch
+    maxSimulatedFreq        = max(maxObjectsFreq,syncSigBaseFreq);
+end
+try
+    fSampleFactor = 2.5*max(1,1/overrideCfg.sensorDistanceModFactor);
+catch
+    fSampleFactor = 2.5;
+end
 
-sensorsPosVec           = ...
-    distanceBetweenSensors*exp(1i*ULA_direction) ...
+fSample                     = fSampleFactor*maxSimulatedFreq;
+distanceBetweenSensors      = (propagationVelocity/maxSimulatedFreq)*lambdaToSensorDistanceFactor;
+f_syncSig                   = @(tVec) syncSigAmp*(tVec>0).*exp(1i*2*pi*syncSigBaseFreq*tVec);
+ULA_direction               = pi;
+
+modifiedDistanceBetweenSensors = distanceBetweenSensors;
+try
+    modifiedDistanceBetweenSensors = modifiedDistanceBetweenSensors*overrideCfg.sensorDistanceModFactor;
+catch
+end
+
+sensorsPosVec               = ...
+    modifiedDistanceBetweenSensors*exp(1i*ULA_direction) ...
     * ...
     (0:(nSensors-1));
 
-positionRes             = 1e-5;
+positionRes                 = 1e-5;
 
 sensorsPos_xVec                                     = real(sensorsPosVec);
 sensorsPos_xVec(abs(sensorsPos_xVec)<positionRes)   = 0;
@@ -118,6 +138,8 @@ bfCfg.distanceBetweenSensors    = simCfg.physical.distanceBetweenSensors;
 bfCfg.ULA_direction             = pi;
 bfCfg.enablePlot                = 0;
 bfCfg.ignoreFirstCoef           = 1;
+bfCfg.fSignal                   = maxSimulatedFreq;
+
 try
     bfCfg.nThetaValues          = overrideCfg.nAzimuth;
 catch
