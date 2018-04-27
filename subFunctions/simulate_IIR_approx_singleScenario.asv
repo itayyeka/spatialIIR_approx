@@ -103,18 +103,18 @@ arrayOutput             = zeros(simDuration_Samples,    1   );
 
 assert(cfgStruct.physical.singleTransmitterFlag==1,'STILL NOT SUPPORTED');
 
-historyStartSampleId    = 1;
-
 for segmentId=1:simNSegments
     startSampleID               = (segmentId-1)*segmentSampleDuration+1;
     endSampleID                 = segmentId*segmentSampleDuration;
     segmentSampleIdVec          = startSampleID:endSampleID;
-    segmentDiscreteTVec         = (segmentSampleIdVec-1)*tSample;
+    segmentDiscreteTVec         = ((startSampleID:endSampleID)-1)*tSample;
+    historyStartSampleId        = 1;
     historyEndSampleId          = startSampleID-1;
     historySampleIdVec          = historyStartSampleId:historyEndSampleId;
-    historyDiscreteTVec         = (historySampleIdVec-1)*tSample;
+    historyDiscreteTVec         = ((historyStartSampleId:historyEndSampleId)-1)*tSample;
     updatedHistorySampleIdVec   = historyStartSampleId:endSampleID;
-    updatedHistoryDiscreteTVec  = (updatedHistorySampleIdVec-1)*tSample;    
+    updatedHistoryDiscreteTVec  = ((historyStartSampleId-1):(endSampleID-1))*tSample;
+    
     
     cfgStruct.dynamics.segmentId           = segmentId;
     cfgStruct.dynamics.startSampleID       = startSampleID;

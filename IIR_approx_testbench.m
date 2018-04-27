@@ -16,9 +16,9 @@ enableParallelCompute               = 1;
 %% tbCfg
 tbCfg.nAzimuth                      = 12;
 tbCfg.simDuration                   = 5;
-tbCfg.lambdaToSensorDistanceFactor  = 1/2;
+tbCfg.lambdaToSensorDistanceFactor  = 1/10;
 tbCfg.enableFeedback                = 1;
-tbCfg.enablePhaseCorrection         = 0;
+tbCfg.enablePhaseCorrection         = 1;
 tbCfg.enableLimiter                 = 0;
 tbCfg.limiterMaxDb                  = 20;
 tbCfg.simulateSpatialFIR            = 0;
@@ -95,6 +95,11 @@ ylabel('dB');
 xlabel('time[Sec]');
 
 arrayResponseMat = abs(cell2mat(cellfun(@(CELL) CELL.yOut(:), simOutput_CELL, 'UniformOutput', false)))/max(arrayReponse_amp(:));
+figure;plot(timeVec,arrayResponseMat);
+title('array gains (azimuth seperated) vs. time - single speaker scenario');
+ylabel('amp');
+xlabel('time[Sec]');
+
 figure;plot(timeVec,db(arrayResponseMat));
 title('array gains (azimuth seperated) vs. time - single speaker scenario');
 ylabel('dB');

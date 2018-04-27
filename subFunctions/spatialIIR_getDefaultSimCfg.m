@@ -51,7 +51,7 @@ simCfg.scenario.objCfgVec = objCfgVec;
 propagationVelocity     = 343;%m/s
 txPropagationVeclocity  = 3e8;%m/s
 systemLatency           = 0;  %sec
-nSensors                = 5;  %must be 2^integer + 1 (without loss of generality)
+nSensors                = 3;  
 singleTransmitterFlag   = 1;
 syncSigBaseFreq         = 2e3;
 nCommunicationChannels  = 3;
@@ -85,15 +85,16 @@ try
 catch
     maxSimulatedFreq        = max(maxObjectsFreq,syncSigBaseFreq);
 end
+fSampleFactor = 5;
 try
-    fSampleFactor = 2.5*max(1,1/overrideCfg.sensorDistanceModFactor);
+    fSampleFactor = fSampleFactor*max(1,1/overrideCfg.sensorDistanceModFactor);
 catch
-    fSampleFactor = 2.5;
 end
 
 fSample                     = fSampleFactor*maxSimulatedFreq;
 distanceBetweenSensors      = (propagationVelocity/maxSimulatedFreq)*lambdaToSensorDistanceFactor;
-f_syncSig                   = @(tVec) syncSigAmp*(tVec>0).*exp(1i*2*pi*syncSigBaseFreq*tVec);
+syncSigduration             = inf;
+f_syncSig                   = @(tVec) syncSigAmp*(tVec>0).*(tVec<syncSigduration).*exp(1i*2*pi*syncSigBaseFreq*tVec);
 ULA_direction               = pi;
 
 modifiedDistanceBetweenSensors = distanceBetweenSensors;
