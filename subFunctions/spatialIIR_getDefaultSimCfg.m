@@ -153,7 +153,7 @@ bfCfg.propagationSpeed          = simCfg.physical.propagationVelocity;
 bfCfg.distanceBetweenSensors    = simCfg.physical.distanceBetweenSensors;
 bfCfg.ULA_direction             = pi;
 bfCfg.enablePlot                = 0;
-bfCfg.ignoreFirstCoef           = 1;
+bfCfg.ignoreFirstCoef           = 0;
 bfCfg.fSignal                   = maxSimulatedFreq;
 
 try

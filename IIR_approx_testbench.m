@@ -14,15 +14,15 @@ end
 enableParallelCompute               = 1;
 
 %% tbCfg
-tbCfg.nAzimuth                      = 12;
-tbCfg.simDuration                   = 5;
+tbCfg.nAzimuth                      = 36;
+tbCfg.simDuration                   = 20;
 tbCfg.lambdaToSensorDistanceFactor  = 1/10;
-tbCfg.enableFeedback                = 0;
+tbCfg.enableFeedback                = 1;
 tbCfg.enableObjectsReflectors       = 1;
 tbCfg.enablePhaseCorrection         = 1;
 tbCfg.enableLimiter                 = 0;
 tbCfg.limiterMaxDb                  = 20;
-tbCfg.simulateSpatialFIR            = 1;
+tbCfg.simulateSpatialFIR            = 0;
 tbCfg.sensorDistanceModFactor       = 1;
 tbCfg.syncSigduration               = inf; 
 
