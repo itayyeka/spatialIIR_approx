@@ -1,4 +1,4 @@
-function [sensorCoefVec,hVec_norm,bfNormValues,resultBfNormValues] = generate_nerrowband_robust_bf(externalCfg)
+function [sensorCoefVec,hVec_norm_ORIG,bfNormValues,resultBfNormValues] = generate_nerrowband_robust_bf(externalCfg)
 %% config
 try
     externalCfg;
@@ -123,6 +123,7 @@ if true
         %% hVec
         hVec            = pinv(betaMatValues)*alphaVec;
         hVec_norm       = hVec/norm(hVec);
+        hVec_norm_ORIG  = hVec_norm;
         if ignoreFirstCoef
             hVec_norm   = hVec_norm/hVec_norm(1); % making sure that the first element is 1
         end
@@ -141,7 +142,6 @@ if true
         sensorCoefVec           = zeros(size(hVec_norm));
         sensorCoefVec(1)        = 1-hVec_norm(1);
         sensorCoefVec(2:end)    = -hVec_norm(2:end);
-        %sensorCoefVec           = sensorCoefVec/norm(sensorCoefVec);
         
         %% resultBf
         resultBf            = transpose(hVec)*steerVec;

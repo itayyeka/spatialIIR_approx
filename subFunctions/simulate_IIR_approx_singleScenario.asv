@@ -114,7 +114,7 @@ for segmentId=1:simNSegments
     historySampleIdVec          = historyStartSampleId:historyEndSampleId;
     historyDiscreteTVec         = (historySampleIdVec-1)*tSample;
     updatedHistorySampleIdVec   = historyStartSampleId:endSampleID;
-    updatedHistoryDiscreteTVec  = (updatedHistorySampleIdVec-1)*tSample;
+    updatedHistoryDiscreteTVec  = (updatedHistorySampleIdVec-1)*tSample;    
     
     cfgStruct.dynamics.segmentId           = segmentId;
     cfgStruct.dynamics.startSampleID       = startSampleID;
@@ -158,9 +158,9 @@ for segmentId=1:simNSegments
         size(objectsRx(segmentSampleIdVec,:,:)) ...
         );
     
-    objectsRx(segmentSampleIdVec,:,:)   = segmentObjectsRx;
+        objectsRx(segmentSampleIdVec,:,:)   = segmentObjectsRx;
     
-    if true
+    if false
         %% DEBUG
         figure; plot(real(objectsRx(:,:,1)));
         close all;
@@ -177,7 +177,7 @@ for segmentId=1:simNSegments
     
     if false
         %% DEBUG
-        figure;
+        figure; 
         plot(cell2mat(arrayInput_CELL_MAT_objectsTx_CELL_MAT));
         close all;
     end
@@ -197,11 +197,11 @@ for segmentId=1:simNSegments
     
     if true
         %% DEBUG
-        figure;
-        plot(real(cell2mat(arrayInput_CELL_MAT_feedback_CELL_MAT)));
+        figure; 
+        plot(cell2mat(arrayInput_CELL_MAT_feedback_CELL_MAT));
         close all;
     end
-    
+        
     arrayInput_CELL_MAT = cellfun(...
         @(objectTxComponent,feedbackComponent) ...
         [objectTxComponent zeros(segmentSampleDuration,nChannels-1)] ...
@@ -227,7 +227,7 @@ for segmentId=1:simNSegments
     
     if false
         %% DEBUG
-        figure;
+        figure; 
         plot(segment_arrayInput(:,:,1));
         close all;
     end
@@ -237,7 +237,7 @@ for segmentId=1:simNSegments
     %% simulate array processor to generate the array response tx signal
     
     cfgStruct.IdealEstimation.firstObjectInitialDistance    = ...
-        objectSensor_crossDistances_CELL_MAT{1,1}(1);
+        objectSensor_crossDistances_CELL_MAT{1,1}(1);    
     [segment_arrayOutput,segment_arrayResponse]             = ...
         processor_goldenModel(segment_arrayInput,cfgStruct);
     
@@ -272,13 +272,14 @@ for segmentId=1:simNSegments
         close all;
     end
     
-    objectsRx(segmentSampleIdVec,:,:)   = ...
-        objectsRx(segmentSampleIdVec,:,:) ...
-        + ...
-        reshape(...
-        cell2mat(reshape(segment_objectsRx_arrayResponse_objVEC,[],1)),...
-        size(objectsRx(segmentSampleIdVec,:,:)) ...
-        );
+        objectsRx(segmentSampleIdVec,:,:)   = ...
+            objectsRx(segmentSampleIdVec,:,:) ...
+            + ...
+            reshape(...
+            cell2mat(reshape(segment_objectsRx_arrayResponse_objVEC,[],1)),...
+            size(objectsRx(segmentSampleIdVec,:,:)) ...
+            );
+    end
     
     if false
         %% DEBUG

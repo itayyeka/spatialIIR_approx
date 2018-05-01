@@ -11,7 +11,7 @@ catch
     IIR_approx_subFunctionsIndicator;
 end
 
-enableParallelCompute               = 1;
+enableParallelCompute               = 0;
 
 %% tbCfg
 tbCfg.nAzimuth                      = 12;

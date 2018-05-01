@@ -58,25 +58,28 @@ nCommunicationChannels  = 3;
 syncSigAmp              = 1;
 
 try
-    enableFeedback  = overrideCfg.enableFeedback;
+    try
+        enableFeedback  = ~overrideCfg.simulateSpatialFIR;
+        syncSigAmp      = double(enableFeedback);
+    catch
+        enableFeedback  = overrideCfg.enableFeedback;
+    end
 catch
-    enableFeedback  = 1;
+    enableFeedback      = 1;
 end
-
 try
     enableObjectsReflectors     = overrideCfg.enableObjectsReflectors;
 catch
     enableObjectsReflectors     = 1;
 end
-
 try
-    if overrideCfg.simulateSpatialFIR
-        enableFeedback  = 0;
+    if ~overrideCfg.simulateSpatialFIR
+        enableFeedback              = 0;
+        enableObjectsReflectors     = 0;
     end
 catch
 end
-
-enableAttenuation   = 0;
+enableAttenuation       = 0;
 
 try
     lambdaToSensorDistanceFactor = overrideCfg.lambdaToSensorDistanceFactor;%sec
@@ -152,7 +155,7 @@ bfCfg.propagationSpeed          = simCfg.physical.propagationVelocity;
 bfCfg.distanceBetweenSensors    = simCfg.physical.distanceBetweenSensors;
 bfCfg.ULA_direction             = pi;
 bfCfg.enablePlot                = 0;
-bfCfg.ignoreFirstCoef           = 1;
+bfCfg.ignoreFirstCoef           = 0;
 bfCfg.fSignal                   = maxSimulatedFreq;
 
 try

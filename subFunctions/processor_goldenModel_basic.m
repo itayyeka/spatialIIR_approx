@@ -17,11 +17,18 @@ correctionPhase = ...
 %% feedback synthesis
 sensorFeedbackWeights           = cfgStruct.filter.sensorWeights;
 arrayFeedback                   = zeros(size(arrayInput));
+
 arrayFeedback_basic             = ...
     exp(1i*correctionPhase) ...
     *squeeze(arrayInput(:,:,1)) ...
     *sensorFeedbackWeights(:);
 
+try
+    if ~cfgStruct.physical.enableFeedback
+        arrayFeedback_basic     = zeros(size(arrayFeedback_basic));
+    end
+catch
+end
 
 try
     enableLimiter   = cfgStruct.filter.enableLimiter;
