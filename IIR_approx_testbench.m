@@ -23,6 +23,7 @@ tbCfg.enableLimiter                 = 0;
 tbCfg.limiterMaxDb                  = 20;
 tbCfg.simulateSpatialFIR            = 0;
 tbCfg.sensorDistanceModFactor       = 1;
+tbCfg.syncSigduration               = inf; 
 
 %% generate simCfg
 simCfg.scriptEnables.plotOutput = 0;
@@ -48,6 +49,7 @@ overrideCfg.azimuthVec                      = azimuthVec;
 overrideCfg.enableFeedback                  = tbCfg.enableFeedback;
 overrideCfg.simulateSpatialFIR              = tbCfg.simulateSpatialFIR;
 overrideCfg.sensorDistanceModFactor         = tbCfg.sensorDistanceModFactor;
+overrideCfg.syncSigduration                 = tbCfg.syncSigduration;
 
 if enableParallelCompute
     parfor azimuthId=1:tbCfg.nAzimuth

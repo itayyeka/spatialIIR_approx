@@ -94,6 +94,10 @@ end
 fSample                     = fSampleFactor*maxSimulatedFreq;
 distanceBetweenSensors      = (propagationVelocity/maxSimulatedFreq)*lambdaToSensorDistanceFactor;
 syncSigduration             = inf;
+try
+    syncSigduration         = overrideCfg.syncSigduration;
+catch
+end
 f_syncSig                   = @(tVec) syncSigAmp*(tVec>0).*(tVec<syncSigduration).*exp(1i*2*pi*syncSigBaseFreq*tVec);
 ULA_direction               = pi;
 
@@ -138,7 +142,7 @@ bfCfg.propagationSpeed          = simCfg.physical.propagationVelocity;
 bfCfg.distanceBetweenSensors    = simCfg.physical.distanceBetweenSensors;
 bfCfg.ULA_direction             = pi;
 bfCfg.enablePlot                = 0;
-bfCfg.ignoreFirstCoef           = 1;
+bfCfg.ignoreFirstCoef           = 0;
 bfCfg.fSignal                   = maxSimulatedFreq;
 
 try

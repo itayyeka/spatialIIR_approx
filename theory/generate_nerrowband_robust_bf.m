@@ -16,7 +16,7 @@ minNoisePhase           = 0;
 maxNoisePhase           = pi/1000;
 nNoisePhase             = 12;
 enablePlot              = 1;
-ignoreFirstCoef         = 1;
+ignoreFirstCoef         = 0;
 
 externallyConfigurableParamNames        = {...
     'nThetaValues',...
@@ -138,9 +138,10 @@ if true
         end
         
         %% sensorCoefVec
-        sensorCoefVec        = zeros(size(hVec_norm));
-        sensorCoefVec(1)     = 1-hVec_norm(1);
-        sensorCoefVec(2:end) = -hVec_norm(2:end);
+        sensorCoefVec           = zeros(size(hVec_norm));
+        sensorCoefVec(1)        = 1-hVec_norm(1);
+        sensorCoefVec(2:end)    = -hVec_norm(2:end);
+        %sensorCoefVec           = sensorCoefVec/norm(sensorCoefVec);
         
         %% resultBf
         resultBf            = transpose(hVec)*steerVec;
