@@ -92,19 +92,28 @@ arrayReponse_temporalMat        = [arrayReponse_temporalMat arrayReponse_tempora
 arrayReponse_amp_normalized     = arrayReponse_amp/max(arrayReponse_amp(:));
 arrayReponse_maxAmpMat          = [arrayReponse_maxAmpMat arrayReponse_amp_normalized(:)];
 
-timeVec = linspace(0,tbCfg.simDuration,size(arrayReponse_temporalMat,1));
+timeVec = simOutput_CELL{1}.tVec;
 figure;plot(timeVec,db(arrayReponse_temporalMat));
 title('Max array gain (sweeped through all azimuths) vs. time - single speaker scenario');
 ylabel('dB');
 xlabel('time[Sec]');
 
-arrayResponseMat = abs(cell2mat(cellfun(@(CELL) CELL.yOut(:), simOutput_CELL, 'UniformOutput', false)))/max(arrayReponse_amp(:));
-figure;plot(timeVec,arrayResponseMat);
+arrayResponseMat    = cell2mat(cellfun(@(CELL) CELL.yOut(:), simOutput_CELL, 'UniformOutput', false))/max(arrayReponse_amp(:));
+normFreqVec         = linspace(-pi,pi,size(arrayResponseMat,1));
+figure;plot(normFreqVec,db(fftshift(fft(arrayResponseMat))));
+hold on;
+plot(normFreqVec,db(fftshift(fft(simCfg.physical.f_syncSig(timeVec)))),'*-');
+title('array response FFT');
+ylabel('dB');
+xlabel('norm freq');
+
+arrayResponseAbsMat = abs(arrayResponseMat);
+figure;plot(timeVec,arrayResponseAbsMat);
 title('array gains (azimuth seperated) vs. time - single speaker scenario');
 ylabel('amp');
 xlabel('time[Sec]');
 
-figure;plot(timeVec,db(arrayResponseMat));
+figure;plot(timeVec,db(arrayResponseAbsMat));
 title('array gains (azimuth seperated) vs. time - single speaker scenario');
 ylabel('dB');
 xlabel('time[Sec]');

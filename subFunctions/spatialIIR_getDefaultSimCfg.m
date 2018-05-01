@@ -23,7 +23,8 @@ if true
         initAzimuth              = 0;%RAD
     end
     
-    complexXyPos                = @(t) initDistance*exp(1i*initAzimuth)*ones(size(t));
+    radialVelocity              = 0;%m/s 
+    complexXyPos                = @(t) exp(1i*initAzimuth)*(initDistance+t*radialVelocity).*ones(size(t));
     cartesianPosition           = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
     amplitude                   = 0; % in default simulation, only the array generate signals.
     if ~amplitude

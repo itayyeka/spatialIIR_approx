@@ -287,5 +287,6 @@ for segmentId=1:simNSegments
     end
 end
 
-simOutput.yOut = arrayOutput;
+simOutput.yOut  = arrayOutput;
+simOutput.tVec  = simTVec; 
 end
