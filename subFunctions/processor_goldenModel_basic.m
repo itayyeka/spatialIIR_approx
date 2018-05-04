@@ -15,13 +15,16 @@ correctionPhase = ...
     ,2*pi);
 
 %% feedback synthesis
-sensorFeedbackWeights           = cfgStruct.filter.sensorWeights;
+hVec_norm                       = conj(cfgStruct.filter.hVec_norm);
+sensorFeedbackWeights           = zeros(size(hVec_norm));
+sensorFeedbackWeights(1)        = (1 - hVec_norm(1))*exp(1i*correctionPhase);
+sensorFeedbackWeights(2:end)    = - hVec_norm(2:end)*exp(1i*correctionPhase);
 arrayFeedback                   = zeros(size(arrayInput));
 
 arrayFeedback_basic             = ...
     exp(1i*correctionPhase) ...
     *squeeze(arrayInput(:,:,1)) ...
-    *sensorFeedbackWeights(:);
+    *flipud(sensorFeedbackWeights(:));
 
 try
     if ~cfgStruct.physical.enableFeedback
