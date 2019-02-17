@@ -1,5 +1,6 @@
 function [] = IIR_approx_testbench()
 close all;
+clear all;
 clc;
 
 try
@@ -11,7 +12,7 @@ catch
     IIR_approx_subFunctionsIndicator;
 end
 
-enableParallelCompute               = 1;
+enableParallelCompute               = 0;
 
 %% tbCfg
 tbCfg.nAzimuth                      = 36;
@@ -53,6 +54,7 @@ overrideCfg.sensorDistanceModFactor         = tbCfg.sensorDistanceModFactor;
 overrideCfg.syncSigduration                 = tbCfg.syncSigduration;
 overrideCfg.enableObjectsReflectors         = tbCfg.enableObjectsReflectors;
 
+simOutput_CELL = cell(tbCfg.nAzimuth);
 if enableParallelCompute
     parfor azimuthId=1:tbCfg.nAzimuth
         curOverrideCfg                              = overrideCfg;

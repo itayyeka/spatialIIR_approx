@@ -23,12 +23,13 @@ if true
         initAzimuth              = 0;%RAD
     end
     
-    radialVelocity              = 0;%m/s 
+    radialVelocity              = 0;%m/s
     complexXyPos                = @(t) exp(1i*initAzimuth)*(initDistance+t*radialVelocity).*ones(size(t));
     cartesianPosition           = @(t) [real(complexXyPos(t(:))), imag(complexXyPos(t(:))), zeros(length(t),1)];
-    amplitude                   = 0; % in default simulation, only the array generate signals.
-    if ~amplitude
+    try
         amplitude               = double(overrideCfg.simulateSpatialFIR);
+    catch
+        amplitude               = 0; % in default simulation, only the array generate signals.
     end
     sourceMinFreq               = 2e3;%Hz
     sourceMaxFreq               = 2e3;
@@ -50,11 +51,11 @@ end
 simCfg.scenario.objCfgVec = objCfgVec;
 %% physical
 propagationVelocity     = 343;%m/s
-txPropagationVeclocity  = 3e8;%m/s
+txPropagationVeclocity  = 343;%m/s
 systemLatency           = 0;  %sec
-nSensors                = 3;  
+nSensors                = 3;
 singleTransmitterFlag   = 1;
-syncSigBaseFreq         = 2e3;
+syncSigBaseFreq         = 10e3;
 nCommunicationChannels  = 3;
 syncSigAmp              = 1;
 
@@ -80,9 +81,9 @@ end
 enableAttenuation   = 0;
 
 try
-    lambdaToSensorDistanceFactor = overrideCfg.lambdaToSensorDistanceFactor;%sec
+    lambdaToSensorDistanceFactor = overrideCfg.lambdaToSensorDistanceFactor;
 catch
-    lambdaToSensorDistanceFactor = 1/10;%sec
+    lambdaToSensorDistanceFactor = 1/2;
 end
 
 maxObjectsFreq              = max(cellfun(@(objCfg) objCfg.sourceMaxFreq,objCfgVec));
@@ -95,7 +96,7 @@ try
 catch
     maxSimulatedFreq        = max(maxObjectsFreq,syncSigBaseFreq);
 end
-fSampleFactor = 5;
+fSampleFactor = 3;
 try
     fSampleFactor = fSampleFactor*max(1,1/overrideCfg.sensorDistanceModFactor);
 catch
@@ -103,12 +104,16 @@ end
 
 fSample                     = fSampleFactor*maxSimulatedFreq;
 distanceBetweenSensors      = (propagationVelocity/maxSimulatedFreq)*lambdaToSensorDistanceFactor;
-syncSigduration             = inf;
+syncSigDuration             = inf;
 try
-    syncSigduration         = overrideCfg.syncSigduration;
+    syncSigDuration         = overrideCfg.syncSigduration;
 catch
 end
-f_syncSig                   = @(tVec) syncSigAmp*(tVec>0).*(tVec<syncSigduration).*exp(1i*2*pi*syncSigBaseFreq*tVec);
+f_syncSig_singleFreq        = @(tVec,f) syncSigAmp*(tVec>0).*(tVec<syncSigDuration).*exp(1i*2*pi*f*tVec);
+dF                          = 100; 
+f_syncSig_singleFreq1       = @(tVec) f_syncSig_singleFreq(tVec,syncSigBaseFreq);
+f_syncSig_singleFreq2       = @(tVec) f_syncSig_singleFreq(tVec,syncSigBaseFreq+dF);
+f_syncSig                   = @(tVec) f_syncSig_singleFreq(tVec,syncSigBaseFreq) + f_syncSig_singleFreq(tVec,syncSigBaseFreq+dF);
 ULA_direction               = pi;
 
 modifiedDistanceBetweenSensors = distanceBetweenSensors;
@@ -145,6 +150,9 @@ simCfg.physical.nCommunicationChannels  = nCommunicationChannels;
 simCfg.physical.syncSigBaseFreq         = syncSigBaseFreq;
 simCfg.physical.syncSigAmp              = syncSigAmp;
 simCfg.physical.f_syncSig               = f_syncSig;
+simCfg.physical.f_syncSig_singleFreq    = f_syncSig_singleFreq;
+simCfg.physical.f_syncSig_singleFreq1   = f_syncSig_singleFreq1;
+simCfg.physical.f_syncSig_singleFreq2   = f_syncSig_singleFreq2;
 
 %% filter
 bfCfg.bf_cosPolynomCoefVec      = [0.103 0.484 0.413]; % second order super cardioid
