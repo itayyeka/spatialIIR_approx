@@ -2,32 +2,32 @@ function [] = twoFreq_proofOfConcept(cfgIn)
 clear all;
 close all;
 clc;
-goldenCfgEnable = 1;
+goldenCfgEnable = 0;
 %% configure
 if goldenCfgEnable
     simDuration_iterations      = 200;%sec
     nSensors                    = 5;
     r                           = 0.9;
-    targetRange                 = 100;
+    targetRange_samples         = 100;
     propagationVelocity         = 343;
     sigFreq                     = 10;%Hz
     dF                          = 0.001;%Hz
     thetaS                      = pi/2;
     historyIterNum              = 3;
-    rangeError                  = 0*targetRange;
+    rangeError                  = 0*targetRange_samples;
     stftDuration_iterPrecent    = 30; % precent of iteration
 else
-    simDuration_iterations      = 200;%sec
+    simDuration_iterations      = 94;%sec
     nSensors                    = 3;
     r                           = 0.9;
-    targetRange                 = 100;
-    propagationVelocity         = 343;
-    sigFreq                     = 2e3;%Hz
-    dF                          = 1;%Hz
+    targetRange_samples         = 256;
+    propagationVelocity         = 3e8;
+    sigFreq                     = 10e9;%Hz
+    dF                          = 1e3;%Hz
     thetaS                      = pi/2;
     historyIterNum              = 3;
-    rangeError                  = 0*targetRange;
-    stftDuration_iterPrecent    = 30; % precent of iteration
+    rangeError                  = 0*targetRange_samples;
+    stftDuration_iterPrecent    = 50; % precent of iteration
 end
 %% auxiliary
 c               = propagationVelocity;
@@ -50,30 +50,36 @@ f_hCB           = @(thetaS,range,f,f_align) ...
     ,[],1);
 fSample                 = 5*f2;
 tSample                 = 1/fSample;
-tPd                     = targetRange/c;
+tPd                     = targetRange_samples*tSample;
+targetRange             = c*tPd;
 nSamplesIter            = floor((2*tPd-N*D/c)/tSample);
 stftDuration_samples    = round(stftDuration_iterPrecent*nSamplesIter/100);
 firstIterStftTVec       = tSample*(0:(stftDuration_samples-1));
 stftRef1                = f_exp(-sigFreq,firstIterStftTVec);
 stftRef2                = f_exp(-f2,firstIterStftTVec);
-f_theoryBp              = @(x) sqrt((1-r)^2*(1-cos(N*x))./(N^2*(1-cos(x))+r^2*(1-cos(N*x))+N*r*(-1+cos(x)+cos(N*x)-cos((N-1)*x)))); 
+f_theoryBp              = @(x) sqrt((1-r)^2*(1-cos(N*x))./(N^2*(1-cos(x))+r^2*(1-cos(N*x))+N*r*(-1+cos(x)+cos(N*x)-cos((N-1)*x))));
 
+targetAngleVec          = linspace(0, pi, 37);
+nTheta                  = length(targetAngleVec);
+simDuration_samples     = simDuration_iterations*nSamplesIter;
+h1Mat_ideal             = zeros(simDuration_samples,nTheta);
+h1Mat                   = zeros(simDuration_samples,nTheta);
+h2Mat                   = zeros(simDuration_samples,nTheta);
+twoFreqBf               = zeros(simDuration_iterations,nTheta);
 
-h1Mat_ideal     = [];
-h1Mat           = [];
-h2Mat           = [];
-twoFreqBf       = [];
-hCB             = f_hCB(thetaS,targetRange,sigFreq,dF);
+hCB             = f_hCB(thetaS,targetRange,sigFreq,-dF);
 hCB_ideal       = f_hCB(thetaS,targetRange,sigFreq,sigFreq);
 hCBT            = transpose(hCB);
 hCBT_ideal      = transpose(hCB_ideal);
 hCBT2           = [zeros(1, N-1) 1];
 sampleIdVec     = 1 : nSamplesIter;
+targetAngleId   = 0;
 
-targetAngleVec  = linspace(0, pi, 37);
+
 
 %% simulate
 for targetAngle = targetAngleVec
+    targetAngleId   = targetAngleId + 1;
     dTOAVec         = f_dTOA(targetAngle);
     h1              = [];
     h1_ideal        = [];
@@ -168,53 +174,47 @@ for targetAngle = targetAngleVec
             close all;
         end
         
-    end
+        stftInput_iterH1 = iterH1(end-stftDuration_samples+1:end);
+        stftInput_iterH2 = iterH2(end-stftDuration_samples+1:end);
+        iterH1Stft       = reshape(stftRef1,1,[])*stftInput_iterH1(:);
+        iterH2Stft       = reshape(stftRef2,1,[])*stftInput_iterH2(:);
     
-    stftInput_iterH1 = iterH1(end-stftDuration_samples+1:end);
-    stftInput_iterH2 = iterH2(end-stftDuration_samples+1:end);
-    if false
-        %% DEBUG
-        iterH1_norm     = stftInput_iterH1/max(abs(stftInput_iterH1(:)));
-        iterH2_norm     = stftInput_iterH2/max(abs(stftInput_iterH2(:)));
-        
-        figure;
-        sp1     = subplot(2,1,1);
-        plot(real([stftRef1(:) iterH1_norm(:)]));
-        sp2     = subplot(2,1,2);
-        plot(real([stftRef2(:) iterH2_norm(:)]));
-        linkaxes([sp1,sp2],'x');
-        close all;
-    end
-    iterH1Stft              = reshape(stftRef1,1,[])*stftInput_iterH1(:);
-    iterH2Stft              = reshape(stftRef2,1,[])*stftInput_iterH2(:);
-    twoFreqBf(end+1)        = 1/((1/iterH1Stft) - (1/iterH2Stft));
-    h1Mat_ideal(:,end+1)    = h1_ideal(:);
-    h1Mat(:,end+1)          = h1(:);
-    h2Mat(:,end+1)          = h2(:);
+        twoFreqBf(IterId,targetAngleId)     = 1/((1/iterH1Stft) - (1/iterH2Stft));
+    end   
+    
+    h1Mat_ideal(:,targetAngleId)    = h1_ideal(:);
+    h1Mat(:,targetAngleId)          = h1(:);
+    h2Mat(:,targetAngleId)          = h2(:);
 end
 
 bp              = h1Mat_ideal(end,:);
 bp              = bp/max(abs(bp));
 dbAbBp          = db(abs(bp));
-bp_twoFreq      = twoFreqBf;
+
+twoFreqBf(isnan(twoFreqBf)) = 0;
+
+bp_twoFreq      = twoFreqBf(end,:);
+% bp_twoFreq      = sum(twoFreqBf);
 bp_twoFreq      = bp_twoFreq/max(abs(bp_twoFreq));
 dbAbsBp_twoFreq = db(abs(bp_twoFreq));
 if true
     %%DEBUG
-    theoryAngleVec              = linspace(0,pi,1000); 
-    theoryBp                    = f_theoryBp(theoryAngleVec-thetaS);
+    theoryAngleVec              = linspace(0,pi,1000);
+    theoryDuVec                 = pi*(cos(theoryAngleVec)-cos(thetaS));
+    theoryBp                    = f_theoryBp(theoryDuVec);
     theoryBp(isnan(theoryBp))   = 1;
     theoryBp_norm               = theoryBp/max(theoryBp);
     dbAbstheoryBp_norm          = db(abs(theoryBp_norm));
     figure;
-%     subplot(2,1,1);
+    subplot(2,1,1);
     plot(targetAngleVec,dbAbBp(:));
     hold on;
     plot(theoryAngleVec,dbAbstheoryBp_norm(:),'--');
     subplot(2,1,2);
     plot(targetAngleVec,dbAbsBp_twoFreq);
     
-    figure;plot(db(abs(h1Mat_ideal)))
+    figure;plot(db(abs(h1Mat_ideal)));
+    figure;plot(db(abs(twoFreqBf)));
     close all;
 end
 end
